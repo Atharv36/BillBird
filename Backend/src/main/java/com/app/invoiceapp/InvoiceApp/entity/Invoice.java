@@ -31,7 +31,7 @@ public class Invoice {
     private String invoiceNumber;
 
     @Convert(converter = JsonConverter.class)
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private Object invoiceJson;
 
 
