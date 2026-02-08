@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
-    @Value("${spring.app.frontendurl}")
+    @Value("${spring.app.frontendOrigins}")
     private String allowedOrigins;
 
     @Override

@@ -43,7 +43,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${spring.app.frontendurl}")
+    @Value("${spring.app.frontendOrigins}")
     private String allowedOrigins;
 
     @Bean
