@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -25,6 +26,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtUtils jwtUtils;
@@ -44,38 +46,44 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             Authentication authentication
     ) throws IOException, ServletException {
 
-        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oauth2User.getAttribute("email");
+        try {
+            OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+            String email = oauth2User.getAttribute("email");
 
-        if (email == null || email.isBlank()) {
-            String targetUrl = buildRedirectUrl("missing_email");
+            if (email == null || email.isBlank()) {
+                String targetUrl = buildRedirectUrl("missing_email");
+                response.sendRedirect(targetUrl);
+                return;
+            }
+
+            Optional<User> existingUserOpt = userRepository.findByEmail(email);
+            User user = existingUserOpt.orElseGet(() -> {
+                String username = generateUniqueUsername(email);
+                String randomPassword = UUID.randomUUID().toString();
+                return userRepository.save(User.builder()
+                        .email(email)
+                        .username(username)
+                        .password(passwordEncoder.encode(randomPassword))
+                        .build());
+            });
+
+            if (user.getUsername() == null || user.getUsername().isBlank()) {
+                String username = generateUniqueUsername(email);
+                user.setUsername(username);
+                user = userRepository.save(user);
+            }
+
+            UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+            ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+            response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+
+            String targetUrl = buildRedirectUrl("success");
             response.sendRedirect(targetUrl);
-            return;
+        } catch (Exception e) {
+            log.error("OAuth2 success handler failed", e);
+            String targetUrl = buildRedirectUrl("error");
+            response.sendRedirect(targetUrl);
         }
-
-        Optional<User> existingUserOpt = userRepository.findByEmail(email);
-        User user = existingUserOpt.orElseGet(() -> {
-            String username = generateUniqueUsername(email);
-            String randomPassword = UUID.randomUUID().toString();
-            return userRepository.save(User.builder()
-                    .email(email)
-                    .username(username)
-                    .password(passwordEncoder.encode(randomPassword))
-                    .build());
-        });
-
-        if (user.getUsername() == null || user.getUsername().isBlank()) {
-            String username = generateUniqueUsername(email);
-            user.setUsername(username);
-            user = userRepository.save(user);
-        }
-
-        UserDetailsImpl userDetails = UserDetailsImpl.build(user);
-        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
-
-        String targetUrl = buildRedirectUrl("success");
-        response.sendRedirect(targetUrl);
     }
 
     private String buildRedirectUrl(String status) {
