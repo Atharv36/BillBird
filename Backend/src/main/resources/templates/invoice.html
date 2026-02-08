@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #000;
+            padding: 24px;
+        }
+
+        .box {
+            border: 1px solid #000;
+            padding: 8px;
+            vertical-align: top;
+        }
+
+        .right {
+            text-align: right;
+        }
+
+        .layout {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .layout td {
+            width: 50%;
+            vertical-align: top;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 6px;
+        }
+
+        th {
+            background: #f2f2f2;
+            text-align: center;
+        }
+
+        .num {
+            text-align: right;
+        }
+
+        .summary {
+            width: 40%;
+            margin-left: auto;
+            margin-top: 12px;
+            border-collapse: collapse;
+        }
+
+        .note {
+            margin-top: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= TITLE ================= -->
+<div style="text-align:center;font-size:22px;font-weight:bold;margin-bottom:10px;">
+    TAX INVOICE
+</div>
+
+<!-- ================= FROM + INVOICE ================= -->
+<table class="layout">
+    <tr>
+        <td class="box">
+            <b th:text="${json['from']?.get('name')}"></b><br/>
+            <span th:text="${json['from']?.get('address')}"></span><br/>
+            <span th:text="${json['from']?.get('city')}"></span> ,
+            <span th:text="${json['from']?.get('state')}"></span> ,
+            <span th:text="${json['from']?.get('country')}"></span>
+             -
+            <span th:text="${json['from']?.get('zipcode')}"></span><br/>
+            Ph No: <span th:text="${json['from']?.get('phNo')}"></span><br/>
+
+            GSTIN:
+            <span th:text="${json['from']?.get('gstId')}"></span><br/>
+            Email:
+            <span th:text="${json['from']?.get('email')}"></span>
+        </td>
+
+        <td class="box right">
+            Invoice No:
+            <b th:text="${invoice.invoiceNumber}"></b><br/>
+            Issue Date:
+            <span th:text="${json['invoiceTerms']?.get('issueDate')}"></span><br/>
+            Due Date:
+            <span th:text="${json['invoiceTerms']?.get('dueDate')}"></span>
+        </td>
+    </tr>
+</table>
+
+<!-- ================= BILL TO ================= -->
+<table class="layout">
+    <tr>
+        <td class="box">
+            <b>Bill To</b><br/>
+            <b th:text="${json['to']?.get('name')}"></b><br/>
+            <span th:text="${json['to']?.get('address')}"></span><br/>
+            <span th:text="${json['to']?.get('city')}"></span>,
+            <span th:text="${json['to']?.get('state')}"></span>,
+            <span th:text="${json['to']?.get('country')}"></span>
+             -
+            <span th:text="${json['to']?.get('zipcode')}"></span><br/>
+            Ph No: <span th:text="${json['to']?.get('phNo')}"></span><br/>
+            GSTIN:
+            <span th:text="${json['to']?.get('gstId')}"></span><br/>
+            Email:
+            <span th:text="${json['to']?.get('email')}"></span>
+        </td>
+    </tr>
+</table>
+
+<!-- ================= ITEMS ================= -->
+<table>
+    <thead>
+    <tr>
+        <th>Description</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>Amount</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="item : ${json['invoicing']?.get('items')}">
+        <td th:text="${item['description']}"></td>
+        <td class="num" th:text="${item['quantity']}"></td>
+        <td class="num" th:text="${currencySymbol + item['price']}"></td>
+        <td class="num"
+            th:text="${currencySymbol + (item['quantity'] * item['price'])}">
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- ================= TOTALS ================= -->
+<table class="summary">
+    <tr>
+        <td>Subtotal</td>
+        <td class="num"
+            th:text="${currencySymbol + json['invoicing']?.get('subTotal')}">
+        </td>
+    </tr>
+
+    <tr>
+        <td>Discount (%)</td>
+        <td class="num"
+            th:text="${json['invoicing']?.get('additional')?.get('discount') ?: 0}">
+        </td>
+    </tr>
+
+    <tr>
+        <td>Tax (%)</td>
+        <td class="num"
+            th:text="${json['invoicing']?.get('additional')?.get('taxes') ?: 0}">
+        </td>
+    </tr>
+
+    <tr>
+        <th>Grand Total</th>
+        <th class="num"
+            th:text="${currencySymbol + json['invoicing']?.get('total')}">
+        </th>
+    </tr>
+</table>
+
+<!-- ================= BANK + SIGN ================= -->
+<table class="layout" style="margin-top:16px;">
+    <tr>
+        <td class="box">
+            <b>Bank Details</b><br/>
+            Bank:
+            <span th:text="${json['paymentDetails']?.get('bankName')}"></span><br/>
+            A/C Name:
+            <span th:text="${json['paymentDetails']?.get('accountName')}"></span><br/>
+            A/C No:
+            <span th:text="${json['paymentDetails']?.get('accountNumber')}"></span><br/>
+            IFSC:
+            <span th:text="${json['paymentDetails']?.get('ifscCode')}"></span>
+        </td>
+
+        <td class="box right">
+            <br/><br/>
+            For
+            <b th:text="${json['from']?.get('name')}"></b><br/><br/>
+            Authorised Signatory
+        </td>
+    </tr>
+</table>
+
+<!-- ================= NOTE ================= -->
+<div class="note">
+    <b>Note:</b>
+    <span th:text="${json['invoicing']?.get('note')}"></span>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+  
+
+  --green: #141415; 
+  --blue: #eeecf0;
+}
+
+.tajawal-extralight {
+  font-family: "Tajawal", sans-serif;
+  font-weight: 200;
+  font-style: normal;
+}
+
+.tajawal-regular {
+  font-family: "Tajawal", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
