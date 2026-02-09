@@ -24,6 +24,8 @@ const Login = () => {
     const onSubmit = async (data) => {
         setLoading(true)
         try {
+            // Clear any stale OAuth token so cookie-based auth is used
+            localStorage.removeItem("authToken")
             await loginAPI(data)
             await dispatch(fetchUser()).unwrap()
             toast.success("Login successful! Welcome back.")
