@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.jspecify.annotations.Nullable;
+// import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 
@@ -30,8 +30,13 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private LocalDate createdAt = LocalDate.now();
+    @Column(nullable = false, updatable = false)
+    private LocalDate createdAt;
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDate.now();
+    }
     public User(String email, String username, String password) {
         this.email = email;
         this.username = username;
