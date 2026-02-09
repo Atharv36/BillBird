@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 const Form = ({ formData, setFormData, step, setStep, editMode = false, invoiceId = null }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
   /* ---------- STEP VALIDATION ---------- */
   const isStepValid = validators[step]?.(formData);
@@ -48,7 +49,7 @@ const Form = ({ formData, setFormData, step, setStep, editMode = false, invoiceI
         // 🔥 open PDF immediately
         setTimeout(() => {
           window.open(
-            `http://localhost:8181/api/invoice/${id}/pdf`,
+            `${apiBaseUrl}/api/invoice/${id}/pdf`,
             "_blank"
           );
         }, 1000);
