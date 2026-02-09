@@ -48,9 +48,11 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         try {
             OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+            log.info("OAuth2 user attributes: {}", oauth2User.getAttributes());
             String email = oauth2User.getAttribute("email");
 
             if (email == null || email.isBlank()) {
+                log.warn("OAuth2 login missing email. Attributes: {}", oauth2User.getAttributes());
                 String targetUrl = buildRedirectUrl("missing_email");
                 response.sendRedirect(targetUrl);
                 return;
