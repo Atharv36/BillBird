@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { fetchUser } from "../store/reducers/userReducer";
+import api from "../api/Axios";
 
 const OAuth2Redirect = () => {
   const dispatch = useDispatch();
@@ -21,6 +22,13 @@ const OAuth2Redirect = () => {
       toast.error(reason);
       navigate("/login", { replace: true });
       return;
+    }
+
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem("authToken", token);
+      // Ensure the very next request uses the bearer token
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
     }
 
     const finish = async () => {
