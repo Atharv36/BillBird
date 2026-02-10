@@ -5,7 +5,7 @@ import Form_Invoicing from "./Form_Invoicing";
 import Form_PaymentDetails from "./Form_PaymentDetails";
 import Form_InvoiceTerms from "./Form_InvoiceTerms";
 import { validators } from "../utils/validators.js";
-import { createInvoice, updateInvoiceAPI } from "../api/index.js";
+import { createInvoice, updateInvoiceAPI, downloadInvoicePdfAPI, generatePreviewPdfAPI } from "../api/index.js";
 import { useNavigate } from "react-router-dom";
 import toast from 'react-hot-toast';
 
@@ -42,17 +42,35 @@ const Form = ({ formData, setFormData, step, setStep, editMode = false, invoiceI
           throw new Error("Invoice ID missing from response");
         }
 
-        toast.success("Invoice created successfully! Opening PDF...", {
+        toast.success("Invoice created successfully! Downloading PDF...", {
           icon: '📄',
         });
 
         // 🔥 open PDF immediately
-        setTimeout(() => {
-          window.open(
-            `${apiBaseUrl}/api/invoice/${id}/pdf`,
-            "_blank"
-          );
-        }, 1000);
+        setTimeout(async () => {
+          try {
+            // Use preview endpoint immediately after create to avoid timing/user mismatch issues
+            const res = await generatePreviewPdfAPI({
+              ...formData,
+              invoiceNumber: savedInvoice.invoiceNumber || `INV-${id}`,
+            });
+            const blob = new Blob([res.data], { type: "application/pdf" });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${savedInvoice.invoiceNumber || `invoice-${id}`}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+          } catch (pdfError) {
+            console.error("Failed to download PDF", pdfError);
+            const pdfMessage =
+              pdfError.response?.data?.message ||
+              "Failed to download PDF. Please try again.";
+            toast.error(pdfMessage, { icon: "❌" });
+          }
+        }, 500);
       }
     } catch (error) {
       console.error("Failed to save invoice", error);
