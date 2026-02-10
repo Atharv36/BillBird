@@ -10,10 +10,14 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.Map;
 
 @Service
 public class InvoicePdfService {
+
+    private static final String PDF_FONT_PATH = "/fonts/NotoSans-Regular.ttf";
+    private static final String PDF_FONT_FAMILY = "Noto Sans";
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -51,6 +55,7 @@ public class InvoicePdfService {
         context.setVariable("currencySymbol", currencySymbol);
 
         String html = templateEngine.process("invoice", context);
+        html = injectBaseFont(html);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -58,6 +63,7 @@ public class InvoicePdfService {
             com.openhtmltopdf.pdfboxout.PdfRendererBuilder builder =
                     new com.openhtmltopdf.pdfboxout.PdfRendererBuilder();
 
+            registerFont(builder);
             builder.withHtmlContent(html, null);
             builder.toStream(out);
             builder.run();
@@ -89,6 +95,7 @@ public class InvoicePdfService {
         context.setVariable("currencySymbol", currencySymbol);
 
         String html = templateEngine.process("guestInvoice", context);
+        html = injectBaseFont(html);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -96,6 +103,7 @@ public class InvoicePdfService {
             com.openhtmltopdf.pdfboxout.PdfRendererBuilder builder =
                     new com.openhtmltopdf.pdfboxout.PdfRendererBuilder();
 
+            registerFont(builder);
             builder.withHtmlContent(html, null);
             builder.toStream(out);
             builder.run();
@@ -105,5 +113,26 @@ public class InvoicePdfService {
         }
 
         return out.toByteArray();
+    }
+
+    private void registerFont(com.openhtmltopdf.pdfboxout.PdfRendererBuilder builder) {
+        builder.useFont(() -> {
+            InputStream stream = InvoicePdfService.class.getResourceAsStream(PDF_FONT_PATH);
+            if (stream == null) {
+                throw new IllegalStateException("Font not found: " + PDF_FONT_PATH);
+            }
+            return stream;
+        }, PDF_FONT_FAMILY);
+    }
+
+    private String injectBaseFont(String html) {
+        String style = "<style>body{font-family:'" + PDF_FONT_FAMILY + "', Arial, sans-serif;}</style>";
+        String lower = html.toLowerCase();
+        int headIndex = lower.indexOf("<head>");
+        if (headIndex >= 0) {
+            int insertPos = headIndex + "<head>".length();
+            return html.substring(0, insertPos) + style + html.substring(insertPos);
+        }
+        return style + html;
     }
 }
