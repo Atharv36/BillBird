@@ -148,9 +148,11 @@ public class InvoicePdfService {
         }
 
         Object invoicingObj = json.get("invoicing");
-        if (!(invoicingObj instanceof Map<?, ?> invoicingMap)) {
+        if (!(invoicingObj instanceof Map<?, ?>)) {
             return;
         }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> invoicingMap = (Map<String, Object>) invoicingObj;
 
         Object itemsObj = invoicingMap.get("items");
         if (!(itemsObj instanceof List<?> items)) {
@@ -170,7 +172,9 @@ public class InvoicePdfService {
         double discountPct = 0.0;
         double taxPct = 0.0;
         Object additionalObj = invoicingMap.get("additional");
-        if (additionalObj instanceof Map<?, ?> additional) {
+        if (additionalObj instanceof Map<?, ?>) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> additional = (Map<String, Object>) additionalObj;
             discountPct = parseDouble(additional.get("discount"));
             taxPct = parseDouble(additional.get("taxes"));
         }
