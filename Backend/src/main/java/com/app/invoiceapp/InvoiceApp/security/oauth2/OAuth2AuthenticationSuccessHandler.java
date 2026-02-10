@@ -53,7 +53,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
             if (email == null || email.isBlank()) {
                 log.warn("OAuth2 login missing email. Attributes: {}", oauth2User.getAttributes());
-                String targetUrl = buildRedirectUrl("missing_email");
+                String targetUrl = buildRedirectUrl("missing_email", null);
                 response.sendRedirect(targetUrl);
                 return;
             }
@@ -79,22 +79,27 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
             response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
 
-            String targetUrl = buildRedirectUrl("success");
+            String token = jwtUtils.generateTokenFromUsername(userDetails.getUsername());
+            String targetUrl = buildRedirectUrl("success", token);
             response.sendRedirect(targetUrl);
         } catch (Exception e) {
             log.error("OAuth2 success handler failed", e);
-            String targetUrl = buildRedirectUrl("error");
+            String targetUrl = buildRedirectUrl("error", null);
             response.sendRedirect(targetUrl);
         }
     }
 
-    private String buildRedirectUrl(String status) {
-        return UriComponentsBuilder
+    private String buildRedirectUrl(String status, String token) {
+        UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUriString(frontendUrl)
                 .path(oauth2RedirectPath)
-                .queryParam("status", status)
-                .build()
-                .toUriString();
+                .queryParam("status", status);
+
+        if (token != null && !token.isBlank()) {
+            builder.queryParam("token", token);
+        }
+
+        return builder.build().toUriString();
     }
 
     private String generateUniqueUsername(String email) {

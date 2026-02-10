@@ -25,7 +25,7 @@ public class CurrencyUtils {
         currencySymbols.put("KRW", "₩");
         currencySymbols.put("TRY", "₺");
         currencySymbols.put("RUB", "₽");
-        currencySymbols.put("INR", "₹");
+        currencySymbols.put("INR", "Rs.");
         currencySymbols.put("BRL", "R$");
         currencySymbols.put("ZAR", "R");
         currencySymbols.put("AED", "د.إ");
@@ -51,9 +51,9 @@ public class CurrencyUtils {
 
     public static String getCurrencySymbol(String currencyCode) {
         if (currencyCode == null || currencyCode.trim().isEmpty()) {
-            return "₹"; // Default to INR
+            return "Rs."; // Default to INR
         }
-        String symbol = currencySymbols.getOrDefault(currencyCode.toUpperCase(), "₹");
-        return symbol != null ? symbol : "₹"; // Ensure we never return null
+        String symbol = currencySymbols.getOrDefault(currencyCode.toUpperCase(), "Rs.");
+        return symbol != null ? symbol : "Rs."; // Ensure we never return null
     }
 }

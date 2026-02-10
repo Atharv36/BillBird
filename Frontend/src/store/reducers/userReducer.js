@@ -32,6 +32,7 @@ const userSlice = createSlice({
   reducers: {
     logout(state) {
       localStorage.removeItem("invoiceData");
+      localStorage.removeItem("authToken");
       state.user = null;
       state.isAuthenticated = false;
       state.pdfCount = 0;
