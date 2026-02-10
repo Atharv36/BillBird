@@ -11,6 +11,8 @@ import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -35,6 +37,7 @@ public class InvoicePdfService {
 
         Map<String, Object> json =
                 objectMapper.convertValue(invoice.getInvoiceJson(), Map.class);
+        normalizeInvoicingTotals(json);
 
         // Extract currency and get symbol
         String currencyCode = "INR"; // default
@@ -75,6 +78,8 @@ public class InvoicePdfService {
     }
 
     public byte[] generatePdfFromJson(String invoiceNumber, Map<String, Object> invoiceJson) {
+
+        normalizeInvoicingTotals(invoiceJson);
 
         // Extract currency and get symbol
         String currencyCode = "INR"; // default
@@ -134,5 +139,64 @@ public class InvoicePdfService {
             return html.substring(0, insertPos) + style + html.substring(insertPos);
         }
         return style + html;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void normalizeInvoicingTotals(Map<String, Object> json) {
+        if (json == null) {
+            return;
+        }
+
+        Object invoicingObj = json.get("invoicing");
+        if (!(invoicingObj instanceof Map<?, ?> invoicingMap)) {
+            return;
+        }
+
+        Object itemsObj = invoicingMap.get("items");
+        if (!(itemsObj instanceof List<?> items)) {
+            return;
+        }
+
+        double subtotal = 0.0;
+        for (Object itemObj : items) {
+            if (!(itemObj instanceof Map<?, ?> item)) {
+                continue;
+            }
+            double qty = parseDouble(item.get("quantity"));
+            double price = parseDouble(item.get("price"));
+            subtotal += qty * price;
+        }
+
+        double discountPct = 0.0;
+        double taxPct = 0.0;
+        Object additionalObj = invoicingMap.get("additional");
+        if (additionalObj instanceof Map<?, ?> additional) {
+            discountPct = parseDouble(additional.get("discount"));
+            taxPct = parseDouble(additional.get("taxes"));
+        }
+
+        double afterDiscount = subtotal - subtotal * (discountPct / 100.0);
+        double total = afterDiscount + afterDiscount * (taxPct / 100.0);
+
+        invoicingMap.put("subTotal", formatAmount(subtotal));
+        invoicingMap.put("total", formatAmount(total));
+    }
+
+    private double parseDouble(Object value) {
+        if (value == null) {
+            return 0.0;
+        }
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+        try {
+            return Double.parseDouble(value.toString().trim());
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+    private String formatAmount(double value) {
+        return String.format(Locale.US, "%.2f", value);
     }
 }
