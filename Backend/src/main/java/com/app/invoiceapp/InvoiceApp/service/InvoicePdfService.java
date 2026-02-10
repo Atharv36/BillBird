@@ -19,7 +19,7 @@ import java.util.Map;
 public class InvoicePdfService {
 
     private static final String PDF_FONT_PATH = "/fonts/NotoSans-Regular.ttf";
-    private static final String PDF_FONT_FAMILY = "Noto Sans";
+    private static final String PDF_FONT_FAMILY = "NotoSans";
 
     @Autowired
     private TemplateEngine templateEngine;
@@ -128,10 +128,19 @@ public class InvoicePdfService {
             }
             return stream;
         }, PDF_FONT_FAMILY);
+
+        // Alias with space, so both names resolve in CSS
+        builder.useFont(() -> {
+            InputStream stream = InvoicePdfService.class.getResourceAsStream(PDF_FONT_PATH);
+            if (stream == null) {
+                throw new IllegalStateException("Font not found: " + PDF_FONT_PATH);
+            }
+            return stream;
+        }, "Noto Sans");
     }
 
     private String injectBaseFont(String html) {
-        String style = "<style>body{font-family:'" + PDF_FONT_FAMILY + "', Arial, sans-serif;}</style>";
+        String style = "<style>body{font-family:'" + PDF_FONT_FAMILY + "','Noto Sans',Arial,sans-serif;}*{font-family:'" + PDF_FONT_FAMILY + "','Noto Sans',Arial,sans-serif !important;}</style>";
         String lower = html.toLowerCase();
         int headIndex = lower.indexOf("<head>");
         if (headIndex >= 0) {
