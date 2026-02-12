@@ -32,7 +32,7 @@ function App() {
       <Route path='/oauth2/redirect' element={<OAuth2Redirect />} />
 
 
-      {/* 🔐 Protected routes */}
+      {/*  Protected routes */}
       <Route element={<ProtectedRoute />}>
       <Route path='/profile' element={<Profile />} />
 

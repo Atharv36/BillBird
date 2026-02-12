@@ -20,7 +20,7 @@ const Register = () => {
   const backendBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8181";
   const googleAuthUrl = `${backendBaseUrl}/oauth2/authorization/google`;
 
-  // 🔑 ONE toggle for both fields
+  //  ONE toggle for both fields
   const [showPassword, setShowPassword] = useState(false);
 
   const password = watch("password");

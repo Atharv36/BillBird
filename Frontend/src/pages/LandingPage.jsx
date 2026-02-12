@@ -45,16 +45,19 @@ const LandingPage = () => {
 
   // If still initializing authentication state, show loading state
   // Don't show loading after logout (when initialized is false but user is not authenticated)
-  if (!initialized && loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f7f7f7]">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+ if (!initialized && loading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f7f7f7]">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
+        <p className="text-gray-600">
+          Server is starting up (cold start). This may take a couple of minutes...
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
 
   return (
     <div className="min-h-screen bg-[#f7f7f7] text-gray-800">
